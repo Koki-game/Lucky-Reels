@@ -1,4 +1,7 @@
-Arcade Reels v1
+RELIC RUSH v1
+Free-to-play arcade prototype.
+Files:
+- index.html
 
-Upload index.html to a GitHub Pages repository.
-This version uses free spins and virtual score only; no real-money betting/cash-out.
+Upload index.html to the root of a GitHub Pages repository.
+No real-money betting, deposits, withdrawals, or cash-out are included.

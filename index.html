@@ -1,209 +1,463 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ka">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#0c1020" />
-  <title>Arcade Reels</title>
-  <style>
-    *{box-sizing:border-box}
-    body{
-      margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
-      background:radial-gradient(circle at top,#1f2850 0,#0b1020 45%,#05070d 100%);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; color:#fff; overflow-x:hidden;
-    }
-    .app{width:min(94vw,430px); padding:18px}
-    .card{
-      border:1px solid rgba(255,255,255,.14); border-radius:24px; padding:18px;
-      background:rgba(255,255,255,.06); backdrop-filter:blur(12px);
-      box-shadow:0 20px 60px rgba(0,0,0,.35);
-    }
-    h1{font-size:28px;margin:0 0 4px}
-    .sub{opacity:.72;font-size:13px;margin-bottom:16px}
-    .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-    .stat{
-      background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
-      padding:10px 12px;border-radius:16px
-    }
-    .label{font-size:11px;opacity:.65;text-transform:uppercase;letter-spacing:.08em}
-    .value{font-size:22px;font-weight:800;margin-top:2px}
-    .reels{
-      display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:10px;
-      background:#090d18;border-radius:20px;border:1px solid rgba(255,255,255,.1);
-      box-shadow:inset 0 0 35px rgba(0,0,0,.55)
-    }
-    .cell{
-      aspect-ratio:1/1; border-radius:17px; display:flex; align-items:center; justify-content:center;
-      font-size:46px; background:linear-gradient(180deg,#202a4a,#12182d);
-      border:1px solid rgba(255,255,255,.1); transition:transform .18s,filter .18s,box-shadow .18s;
-      user-select:none
-    }
-    .cell.win{transform:scale(1.05);box-shadow:0 0 22px rgba(255,255,255,.42);filter:brightness(1.3)}
-    .cell.spin{animation:pulse .16s linear infinite}
-    @keyframes pulse{50%{transform:translateY(4px);filter:blur(1px)}}
-    .msg{height:42px;display:flex;align-items:center;justify-content:center;font-weight:800;text-align:center}
-    .btns{display:grid;grid-template-columns:1fr;gap:10px}
-    button{
-      border:0;border-radius:18px;padding:15px 18px;font-size:18px;font-weight:900;cursor:pointer
-    }
-    #spin{
-      color:#071019;background:linear-gradient(180deg,#fff,#cfd8ff);
-      box-shadow:0 8px 26px rgba(180,196,255,.18)
-    }
-    #spin:disabled{opacity:.55;cursor:not-allowed}
-    .rules{font-size:12px;line-height:1.45;opacity:.68;margin-top:14px}
-    .legend{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
-    .leg{font-size:11px;text-align:center;padding:8px;border-radius:12px;background:rgba(255,255,255,.05)}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#09111c">
+<title>Relic Rush</title>
+<style>
+:root{
+  --bg:#071019;
+  --panel:#0e1a27;
+  --panel2:#132437;
+  --gold:#e5b84b;
+  --gold2:#ffdc78;
+  --text:#f7f7f4;
+  --muted:#9fb0bf;
+  --good:#7df0b1;
+  --danger:#ff837f;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:
+radial-gradient(circle at 50% -10%,#1d3e51 0,#0b1823 32%,#071019 66%,#04080d 100%);
+color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+body{display:flex;justify-content:center}
+button{font:inherit}
+.app{width:min(100%,520px);min-height:100vh;padding:18px 14px 28px;position:relative}
+.top{
+  display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:12px
+}
+.brand .small{font-size:11px;letter-spacing:.24em;color:var(--muted);text-transform:uppercase}
+.brand h1{margin:2px 0 0;font-size:34px;letter-spacing:.02em;line-height:1;
+  background:linear-gradient(180deg,#fff3c4,#f3c254 50%,#b36d10);
+  -webkit-background-clip:text;color:transparent;filter:drop-shadow(0 2px 10px #0008)}
+.levelPill{border:1px solid #ffffff20;background:#ffffff09;border-radius:18px;padding:8px 11px;text-align:right}
+.levelPill b{display:block;font-size:18px}
+.levelPill span{font-size:10px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.stat{background:linear-gradient(180deg,#ffffff0d,#ffffff06);border:1px solid #ffffff14;border-radius:14px;padding:10px}
+.stat small{color:var(--muted);display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.stat strong{display:block;margin-top:3px;font-size:20px}
+.progressWrap{margin-bottom:12px}
+.progressText{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px}
+.progress{height:8px;border-radius:999px;background:#ffffff10;overflow:hidden;border:1px solid #ffffff0f}
+.progress > i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7bd0ff,#e9cb65);box-shadow:0 0 16px #82d5ff70;transition:width .4s}
+.machine{
+  border-radius:22px;padding:8px;background:
+  linear-gradient(145deg,#7b4c12,#f1ca64 28%,#745016 50%,#f7da76 72%,#68400e);
+  box-shadow:0 16px 50px #0008,0 0 35px #c9962724;
+}
+.machineInner{background:linear-gradient(180deg,#07111c,#0c1722);padding:8px;border-radius:16px;position:relative;overflow:hidden}
+.machineInner:before{
+  content:"";position:absolute;inset:0;background:linear-gradient(180deg,#ffffff08,transparent 20%,transparent 80%,#0005);pointer-events:none
+}
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.cell{
+  aspect-ratio:.88;border-radius:13px;border:1px solid #ffffff14;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#203346,#0e1a29 70%,#09121c);
+  box-shadow:inset 0 0 18px #0009,0 3px 10px #0005;
+  position:relative;overflow:hidden;font-size:clamp(30px,9vw,48px);
+  transform:translateZ(0);transition:transform .2s,filter .2s,opacity .25s,box-shadow .2s
+}
+.cell::after{
+  content:"";position:absolute;left:9%;right:9%;top:7%;height:26%;border-radius:50%;
+  background:linear-gradient(180deg,#ffffff16,transparent)
+}
+.cell.spin{animation:spinPulse .12s linear infinite}
+@keyframes spinPulse{50%{transform:translateY(5px) scale(.98);filter:blur(1px)}}
+.cell.win{box-shadow:inset 0 0 20px #fff4,0 0 8px #fff8,0 0 23px #f5c24f;transform:scale(1.06)}
+.cell.drop{animation:drop .32s cubic-bezier(.2,.8,.2,1)}
+@keyframes drop{from{transform:translateY(-45px);opacity:.15}to{transform:translateY(0);opacity:1}}
+.cell.vanish{animation:vanish .28s ease forwards}
+@keyframes vanish{to{transform:scale(.15) rotate(18deg);opacity:0;filter:brightness(2.5)}}
+
+.message{
+  min-height:58px;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-weight:900;font-size:18px;letter-spacing:.02em;padding:8px
+}
+.message.big{font-size:25px;color:#ffe47d;text-shadow:0 0 20px #ffb30080}
+.controls{display:grid;grid-template-columns:1fr 74px;gap:9px}
+.spinBtn{
+  border:0;border-radius:18px;padding:15px 18px;font-weight:1000;font-size:21px;letter-spacing:.08em;
+  color:#211500;background:linear-gradient(180deg,#fff0a8,#f4c64f 55%,#c98c1d);
+  box-shadow:0 6px 0 #764a0e,0 13px 24px #0006;cursor:pointer
+}
+.spinBtn:active{transform:translateY(4px);box-shadow:0 2px 0 #764a0e,0 6px 14px #0006}
+.spinBtn:disabled{opacity:.52;cursor:default}
+.soundBtn{border:1px solid #ffffff18;background:#ffffff0b;color:#fff;border-radius:18px;font-size:24px}
+.panel{
+  margin-top:14px;background:linear-gradient(180deg,#ffffff0a,#ffffff05);
+  border:1px solid #ffffff12;border-radius:18px;padding:12px
+}
+.panelTitle{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.panelTitle b{font-size:14px}.panelTitle span{font-size:11px;color:var(--muted)}
+.symbolGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.symbolCard{padding:8px 4px;text-align:center;border-radius:12px;background:#ffffff08;border:1px solid #ffffff0c}
+.symbolCard .ico{font-size:25px}.symbolCard b{display:block;font-size:10px;margin-top:2px}.symbolCard small{font-size:9px;color:var(--muted)}
+.note{font-size:10px;color:var(--muted);line-height:1.45;margin-top:10px;text-align:center}
+.overlay{position:fixed;inset:0;background:#02050adf;display:none;align-items:center;justify-content:center;padding:18px;z-index:20}
+.overlay.show{display:flex}
+.modal{
+  width:min(92vw,430px);background:linear-gradient(180deg,#162b3e,#0a1520);
+  border:1px solid #f0c75f70;border-radius:24px;padding:20px;box-shadow:0 30px 80px #000b,0 0 40px #e6b63f2a;text-align:center
+}
+.modal h2{margin:0 0 5px;font-size:29px;color:#ffe18a}.modal p{margin:0;color:var(--muted);font-size:13px}
+.chests{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.chest{
+  border:1px solid #ffffff18;border-radius:16px;background:linear-gradient(180deg,#27415a,#122235);
+  padding:20px 4px;font-size:42px;cursor:pointer;min-height:98px
+}
+.chest.opened{background:linear-gradient(180deg,#3d5f49,#182d23);font-size:18px;font-weight:900;color:#ffe59a}
+.modalBtn{width:100%;border:0;border-radius:15px;padding:13px;font-weight:900;background:#f0c85b;color:#1c1608}
+.templeBanner{
+  display:none;margin:0 0 12px;padding:12px;border-radius:16px;
+  border:1px solid #8ad9ff45;background:linear-gradient(90deg,#102637,#1a3540);
+  text-align:center;font-weight:900
+}
+.templeBanner.show{display:block;animation:banner .5s ease}
+@keyframes banner{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
+@media(max-width:390px){
+  .app{padding-left:10px;padding-right:10px}.brand h1{font-size:30px}.stats{gap:6px}.stat{padding:8px}.stat strong{font-size:18px}
+}
+</style>
 </head>
 <body>
-  <main class="app">
-    <section class="card">
-      <h1>Arcade Reels</h1>
-      <div class="sub">3×3 matching arcade • მხოლოდ ვირტუალური ქულები</div>
+<div class="app">
+  <div class="top">
+    <div class="brand">
+      <div class="small">Ancient Arcade</div>
+      <h1>RELIC RUSH</h1>
+    </div>
+    <div class="levelPill">
+      <span>TEMPLE</span>
+      <b id="templeName">I</b>
+    </div>
+  </div>
 
-      <div class="stats">
-        <div class="stat">
-          <div class="label">ქულა</div>
-          <div class="value" id="score">0</div>
-        </div>
-        <div class="stat">
-          <div class="label">საუკეთესო</div>
-          <div class="value" id="best">0</div>
-        </div>
-      </div>
+  <div id="templeBanner" class="templeBanner"></div>
 
-      <div class="reels" id="reels"></div>
-      <div class="msg" id="msg">დააჭირე დატრიალებას</div>
+  <div class="stats">
+    <div class="stat"><small>ქულები</small><strong id="score">0</strong></div>
+    <div class="stat"><small>რეკორდი</small><strong id="best">0</strong></div>
+    <div class="stat"><small>კომბო</small><strong id="combo">x1</strong></div>
+  </div>
 
-      <div class="btns">
-        <button id="spin">🎮 დატრიალება</button>
-      </div>
+  <div class="progressWrap">
+    <div class="progressText"><span>შემდეგი ტაძარი</span><span id="progressText">0 / 1200</span></div>
+    <div class="progress"><i id="progressBar"></i></div>
+  </div>
 
-      <div class="legend">
-        <div class="leg">⭐ WILD<br><b>ანაცვლებს სიმბოლოს</b></div>
-        <div class="leg">🎁 BONUS<br><b>3+ = ბონუსი</b></div>
-        <div class="leg">3 ერთ ხაზზე<br><b>ქულები</b></div>
-      </div>
+  <div class="machine">
+    <div class="machineInner">
+      <div id="board" class="board"></div>
+    </div>
+  </div>
 
-      <div class="rules">
-        რეალური ფული, ფსონი, კეშაუთი ან პრიზი არ გამოიყენება. დატრიალება უფასოა და თამაში მხოლოდ ქულების დაგროვებაზეა.
-      </div>
-    </section>
-  </main>
+  <div id="message" class="message">დააჭირე SPIN-ს</div>
+
+  <div class="controls">
+    <button id="spinBtn" class="spinBtn">SPIN</button>
+    <button id="soundBtn" class="soundBtn" aria-label="sound">🔊</button>
+  </div>
+
+  <div class="panel">
+    <div class="panelTitle"><b>არტეფაქტები</b><span>3+ მარცხნიდან = კომბო</span></div>
+    <div class="symbolGrid">
+      <div class="symbolCard"><div class="ico">🪙</div><b>COIN</b><small>20</small></div>
+      <div class="symbolCard"><div class="ico">💎</div><b>CRYSTAL</b><small>40</small></div>
+      <div class="symbolCard"><div class="ico">🗿</div><b>IDOL</b><small>60</small></div>
+      <div class="symbolCard"><div class="ico">📜</div><b>SCROLL</b><small>80</small></div>
+      <div class="symbolCard"><div class="ico">🔱</div><b>RELIC</b><small>110</small></div>
+      <div class="symbolCard"><div class="ico">⭐</div><b>WILD</b><small>ცვლის სიმბოლოს</small></div>
+      <div class="symbolCard"><div class="ico">🌀</div><b>PORTAL</b><small>3+ ბონუსი</small></div>
+      <div class="symbolCard"><div class="ico">🏺</div><b>VASE</b><small>35</small></div>
+    </div>
+    <div class="note">ეს ვერსია არის free-to-play arcade პროტოტიპი: რეალური ფული, ფსონი და თანხის გატანა არ გამოიყენება.</div>
+  </div>
+</div>
+
+<div id="bonusOverlay" class="overlay">
+  <div class="modal">
+    <h2>Treasure Chamber</h2>
+    <p>აირჩიე ერთი სკივრი</p>
+    <div class="chests">
+      <button class="chest" data-chest="0">🧰</button>
+      <button class="chest" data-chest="1">🧰</button>
+      <button class="chest" data-chest="2">🧰</button>
+    </div>
+    <button id="bonusClose" class="modalBtn" style="display:none">გაგრძელება</button>
+  </div>
+</div>
 
 <script>
-const symbols = [
-  {e:"🍒", p:12},
-  {e:"🍋", p:11},
-  {e:"🍇", p:10},
-  {e:"🔔", p:8},
-  {e:"💎", p:6},
-  {e:"⭐", p:4},   // wild
-  {e:"🎁", p:3}    // bonus
+const ROWS = 3, COLS = 5, SIZE = ROWS * COLS;
+
+const SYMBOLS = [
+  {i:"🪙",w:23,v:20},
+  {i:"🏺",w:20,v:35},
+  {i:"💎",w:16,v:40},
+  {i:"🗿",w:13,v:60},
+  {i:"📜",w:10,v:80},
+  {i:"🔱",w:7,v:110},
+  {i:"⭐",w:5,v:0},
+  {i:"🌀",w:4,v:0}
 ];
 
-const paylines = [
-  [0,1,2],[3,4,5],[6,7,8],   // rows
-  [0,3,6],[1,4,7],[2,5,8],   // cols
-  [0,4,8],[2,4,6]            // diagonals
+const LINES = [
+  [0,1,2,3,4],
+  [5,6,7,8,9],
+  [10,11,12,13,14],
+  [0,6,12,8,4],
+  [10,6,2,8,14],
+  [0,1,7,13,14],
+  [10,11,7,3,4],
+  [5,1,2,3,9],
+  [5,11,12,13,9]
 ];
 
-let grid = Array(9).fill("🍒");
-let score = 0;
-let best = Number(localStorage.getItem("arcadeBest")||0);
+const TEMPLES = [
+  {name:"I",need:1200,label:"Sunken Gate"},
+  {name:"II",need:3000,label:"Crystal Hall"},
+  {name:"III",need:6000,label:"Idol Vault"},
+  {name:"IV",need:10000,label:"Astral Shrine"},
+  {name:"V",need:16000,label:"Crown Chamber"}
+];
+
+let grid = Array(SIZE).fill("🪙");
+let score = Number(localStorage.getItem("relicScore") || 0);
+let best = Number(localStorage.getItem("relicBest") || 0);
+let combo = 1;
 let spinning = false;
+let muted = false;
+let bonusLocked = false;
 
-const reels = document.getElementById("reels");
+const board = document.getElementById("board");
 const scoreEl = document.getElementById("score");
 const bestEl = document.getElementById("best");
-const msg = document.getElementById("msg");
-const spinBtn = document.getElementById("spin");
-bestEl.textContent = best;
+const comboEl = document.getElementById("combo");
+const message = document.getElementById("message");
+const spinBtn = document.getElementById("spinBtn");
+const soundBtn = document.getElementById("soundBtn");
+const progressBar = document.getElementById("progressBar");
+const progressText = document.getElementById("progressText");
+const templeName = document.getElementById("templeName");
+const templeBanner = document.getElementById("templeBanner");
+const bonusOverlay = document.getElementById("bonusOverlay");
+const bonusClose = document.getElementById("bonusClose");
+const chestButtons = [...document.querySelectorAll(".chest")];
 
-function weightedSymbol(){
-  const total = symbols.reduce((a,s)=>a+s.p,0);
+function weighted(){
+  const total = SYMBOLS.reduce((a,s)=>a+s.w,0);
   let r = Math.random()*total;
-  for(const s of symbols){
-    if((r-=s.p)<=0) return s.e;
-  }
-  return "🍒";
+  for(const s of SYMBOLS){ r -= s.w; if(r<=0) return s.i; }
+  return "🪙";
 }
 
-function render(winCells=[]){
-  reels.innerHTML="";
-  grid.forEach((s,i)=>{
-    const d=document.createElement("div");
-    d.className="cell"+(winCells.includes(i)?" win":"");
-    d.textContent=s;
-    reels.appendChild(d);
+function valueOf(icon){
+  return SYMBOLS.find(s=>s.i===icon)?.v || 0;
+}
+
+function render(winCells=[], dropCells=[]){
+  board.innerHTML="";
+  grid.forEach((icon,i)=>{
+    const cell=document.createElement("div");
+    cell.className="cell";
+    cell.textContent=icon;
+    if(winCells.includes(i)) cell.classList.add("win");
+    if(dropCells.includes(i)) cell.classList.add("drop");
+    board.appendChild(cell);
   });
 }
 
-function isLineWin(line){
-  const vals=line.map(i=>grid[i]);
-  const nonWild=vals.filter(v=>v!=="⭐");
-  if(nonWild.length===0) return true;
-  if(nonWild.includes("🎁")) return false;
-  return nonWild.every(v=>v===nonWild[0]);
+function isCompatible(icon,target){
+  return icon===target || icon==="⭐";
 }
 
-function evaluate(){
-  let gained=0;
-  let wins=[];
-  for(const line of paylines){
-    if(isLineWin(line)){
-      wins.push(...line);
-      const vals=line.map(i=>grid[i]);
-      const base = vals.includes("💎") ? 80 : vals.includes("🔔") ? 55 : 35;
-      gained += base;
+function lineResult(line){
+  const arr = line.map(i=>grid[i]);
+  const firstReal = arr.find(x=>x!=="⭐" && x!=="🌀");
+  if(!firstReal) return null;
+  let count=0,cells=[];
+  for(let k=0;k<arr.length;k++){
+    if(isCompatible(arr[k],firstReal)){
+      count++; cells.push(line[k]);
+    } else break;
+  }
+  if(count<3) return null;
+  return {symbol:firstReal,count,cells};
+}
+
+function detectWins(){
+  let cells=[], points=0, details=[];
+  for(const line of LINES){
+    const r=lineResult(line);
+    if(r){
+      const mult = r.count===5 ? 5 : r.count===4 ? 2 : 1;
+      const p = valueOf(r.symbol)*mult*combo;
+      points += p;
+      cells.push(...r.cells);
+      details.push(r);
     }
   }
+  return {cells:[...new Set(cells)],points,details};
+}
 
-  const bonusCount = grid.filter(x=>x==="🎁").length;
-  if(bonusCount>=3){
-    gained += bonusCount*60;
-    grid.forEach((v,i)=>{ if(v==="🎁") wins.push(i); });
+function portalIndexes(){
+  const a=[];
+  grid.forEach((x,i)=>{if(x==="🌀") a.push(i)});
+  return a;
+}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+async function animateSpin(){
+  for(let t=0;t<12;t++){
+    grid=grid.map(()=>weighted());
+    render();
+    document.querySelectorAll(".cell").forEach(c=>c.classList.add("spin"));
+    await sleep(60+t*7);
+  }
+  grid=grid.map(()=>weighted());
+  render([],Array.from({length:SIZE},(_,i)=>i));
+  await sleep(220);
+}
+
+async function cascade(){
+  combo=1;
+  let totalRound=0;
+  let rounds=0;
+
+  while(rounds<6){
+    const win = detectWins();
+    if(!win.cells.length) break;
+
+    render(win.cells);
+    message.classList.toggle("big",win.points>=300);
+    message.textContent = combo>1 ? `COMBO x${combo}  +${win.points}` : `+${win.points} ქულა`;
+    score += win.points;
+    totalRound += win.points;
+    updateHUD();
+
+    await sleep(520);
+
+    // vanish winning cells
+    const cells=[...document.querySelectorAll(".cell")];
+    win.cells.forEach(i=>cells[i]?.classList.add("vanish"));
+    await sleep(280);
+
+    // replace won positions with fresh symbols
+    const replaced=[];
+    win.cells.forEach(i=>{grid[i]=weighted();replaced.push(i)});
+    render([],replaced);
+    await sleep(360);
+
+    combo++;
+    comboEl.textContent="x"+combo;
+    rounds++;
   }
 
-  wins=[...new Set(wins)];
-  if(gained>0){
-    score += gained;
-    msg.textContent = `✨ +${gained} ქულა`;
+  combo=1;
+  comboEl.textContent="x1";
+
+  const portals=portalIndexes();
+  if(portals.length>=3){
+    render(portals);
+    message.classList.add("big");
+    message.textContent="PORTAL BONUS!";
+    await sleep(650);
+    openBonus();
   }else{
-    msg.textContent = "კიდევ სცადე!";
+    message.classList.remove("big");
+    if(totalRound===0) message.textContent="კიდევ სცადე";
+    else message.textContent=`რაუნდი დასრულდა • +${totalRound}`;
   }
-  if(score>best){
-    best=score;
-    localStorage.setItem("arcadeBest",String(best));
-  }
-  scoreEl.textContent=score;
-  bestEl.textContent=best;
-  render(wins);
+
+  if(score>best){best=score;localStorage.setItem("relicBest",String(best))}
+  localStorage.setItem("relicScore",String(score));
+  updateHUD();
 }
 
 async function spin(){
-  if(spinning) return;
+  if(spinning || bonusLocked) return;
   spinning=true;
   spinBtn.disabled=true;
-  msg.textContent="ტრიალებს…";
-
-  for(let t=0;t<12;t++){
-    grid=grid.map(()=>weightedSymbol());
-    render();
-    [...document.querySelectorAll(".cell")].forEach(c=>c.classList.add("spin"));
-    await new Promise(r=>setTimeout(r,70+t*8));
-  }
-  grid=grid.map(()=>weightedSymbol());
-  render();
-  evaluate();
-
+  message.classList.remove("big");
+  message.textContent="ტრიალებს…";
+  await animateSpin();
+  await cascade();
   spinning=false;
   spinBtn.disabled=false;
 }
 
+function templeIndex(){
+  let idx=0;
+  for(let i=0;i<TEMPLES.length;i++) if(score>=TEMPLES[i].need) idx=i+1;
+  return Math.min(idx,TEMPLES.length-1);
+}
+
+function updateTemple(){
+  let current=0;
+  for(let i=0;i<TEMPLES.length;i++){
+    if(score>=TEMPLES[i].need) current=i+1;
+  }
+  const idx=Math.min(current,TEMPLES.length-1);
+  templeName.textContent=TEMPLES[idx].name;
+
+  const prevNeed = idx===0 ? 0 : TEMPLES[idx-1].need;
+  const next = TEMPLES[idx];
+  const span = Math.max(1,next.need-prevNeed);
+  const prog = Math.min(100,Math.max(0,((score-prevNeed)/span)*100));
+  progressBar.style.width=prog+"%";
+  progressText.textContent=`${Math.max(0,score-prevNeed)} / ${span}`;
+}
+
+function updateHUD(){
+  scoreEl.textContent=score.toLocaleString();
+  bestEl.textContent=best.toLocaleString();
+  updateTemple();
+}
+
+function openBonus(){
+  bonusLocked=true;
+  chestButtons.forEach(b=>{
+    b.disabled=false;b.classList.remove("opened");b.textContent="🧰";
+  });
+  bonusClose.style.display="none";
+  bonusOverlay.classList.add("show");
+}
+
+function chooseChest(btn){
+  if(btn.disabled) return;
+  const rewards=[120,180,250,320,450,600];
+  const reward=rewards[Math.floor(Math.random()*rewards.length)];
+  btn.classList.add("opened");
+  btn.textContent="+"+reward;
+  score += reward;
+  if(score>best) best=score;
+  localStorage.setItem("relicScore",String(score));
+  localStorage.setItem("relicBest",String(best));
+  updateHUD();
+  chestButtons.forEach(b=>b.disabled=true);
+  bonusClose.style.display="block";
+}
+
+chestButtons.forEach(b=>b.addEventListener("click",()=>chooseChest(b)));
+bonusClose.addEventListener("click",()=>{
+  bonusOverlay.classList.remove("show");
+  bonusLocked=false;
+  message.textContent="BONUS დასრულდა";
+});
+
+soundBtn.addEventListener("click",()=>{
+  muted=!muted;
+  soundBtn.textContent=muted?"🔇":"🔊";
+});
+
 spinBtn.addEventListener("click",spin);
+
 render();
+updateHUD();
 </script>
 </body>
 </html>
