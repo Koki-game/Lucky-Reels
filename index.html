@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ka">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0c1020" />
+  <title>Arcade Reels</title>
+  <style>
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+      background:radial-gradient(circle at top,#1f2850 0,#0b1020 45%,#05070d 100%);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; color:#fff; overflow-x:hidden;
+    }
+    .app{width:min(94vw,430px); padding:18px}
+    .card{
+      border:1px solid rgba(255,255,255,.14); border-radius:24px; padding:18px;
+      background:rgba(255,255,255,.06); backdrop-filter:blur(12px);
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
+    }
+    h1{font-size:28px;margin:0 0 4px}
+    .sub{opacity:.72;font-size:13px;margin-bottom:16px}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+    .stat{
+      background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+      padding:10px 12px;border-radius:16px
+    }
+    .label{font-size:11px;opacity:.65;text-transform:uppercase;letter-spacing:.08em}
+    .value{font-size:22px;font-weight:800;margin-top:2px}
+    .reels{
+      display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:10px;
+      background:#090d18;border-radius:20px;border:1px solid rgba(255,255,255,.1);
+      box-shadow:inset 0 0 35px rgba(0,0,0,.55)
+    }
+    .cell{
+      aspect-ratio:1/1; border-radius:17px; display:flex; align-items:center; justify-content:center;
+      font-size:46px; background:linear-gradient(180deg,#202a4a,#12182d);
+      border:1px solid rgba(255,255,255,.1); transition:transform .18s,filter .18s,box-shadow .18s;
+      user-select:none
+    }
+    .cell.win{transform:scale(1.05);box-shadow:0 0 22px rgba(255,255,255,.42);filter:brightness(1.3)}
+    .cell.spin{animation:pulse .16s linear infinite}
+    @keyframes pulse{50%{transform:translateY(4px);filter:blur(1px)}}
+    .msg{height:42px;display:flex;align-items:center;justify-content:center;font-weight:800;text-align:center}
+    .btns{display:grid;grid-template-columns:1fr;gap:10px}
+    button{
+      border:0;border-radius:18px;padding:15px 18px;font-size:18px;font-weight:900;cursor:pointer
+    }
+    #spin{
+      color:#071019;background:linear-gradient(180deg,#fff,#cfd8ff);
+      box-shadow:0 8px 26px rgba(180,196,255,.18)
+    }
+    #spin:disabled{opacity:.55;cursor:not-allowed}
+    .rules{font-size:12px;line-height:1.45;opacity:.68;margin-top:14px}
+    .legend{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+    .leg{font-size:11px;text-align:center;padding:8px;border-radius:12px;background:rgba(255,255,255,.05)}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <h1>Arcade Reels</h1>
+      <div class="sub">3×3 matching arcade • მხოლოდ ვირტუალური ქულები</div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="label">ქულა</div>
+          <div class="value" id="score">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">საუკეთესო</div>
+          <div class="value" id="best">0</div>
+        </div>
+      </div>
+
+      <div class="reels" id="reels"></div>
+      <div class="msg" id="msg">დააჭირე დატრიალებას</div>
+
+      <div class="btns">
+        <button id="spin">🎮 დატრიალება</button>
+      </div>
+
+      <div class="legend">
+        <div class="leg">⭐ WILD<br><b>ანაცვლებს სიმბოლოს</b></div>
+        <div class="leg">🎁 BONUS<br><b>3+ = ბონუსი</b></div>
+        <div class="leg">3 ერთ ხაზზე<br><b>ქულები</b></div>
+      </div>
+
+      <div class="rules">
+        რეალური ფული, ფსონი, კეშაუთი ან პრიზი არ გამოიყენება. დატრიალება უფასოა და თამაში მხოლოდ ქულების დაგროვებაზეა.
+      </div>
+    </section>
+  </main>
+
+<script>
+const symbols = [
+  {e:"🍒", p:12},
+  {e:"🍋", p:11},
+  {e:"🍇", p:10},
+  {e:"🔔", p:8},
+  {e:"💎", p:6},
+  {e:"⭐", p:4},   // wild
+  {e:"🎁", p:3}    // bonus
+];
+
+const paylines = [
+  [0,1,2],[3,4,5],[6,7,8],   // rows
+  [0,3,6],[1,4,7],[2,5,8],   // cols
+  [0,4,8],[2,4,6]            // diagonals
+];
+
+let grid = Array(9).fill("🍒");
+let score = 0;
+let best = Number(localStorage.getItem("arcadeBest")||0);
+let spinning = false;
+
+const reels = document.getElementById("reels");
+const scoreEl = document.getElementById("score");
+const bestEl = document.getElementById("best");
+const msg = document.getElementById("msg");
+const spinBtn = document.getElementById("spin");
+bestEl.textContent = best;
+
+function weightedSymbol(){
+  const total = symbols.reduce((a,s)=>a+s.p,0);
+  let r = Math.random()*total;
+  for(const s of symbols){
+    if((r-=s.p)<=0) return s.e;
+  }
+  return "🍒";
+}
+
+function render(winCells=[]){
+  reels.innerHTML="";
+  grid.forEach((s,i)=>{
+    const d=document.createElement("div");
+    d.className="cell"+(winCells.includes(i)?" win":"");
+    d.textContent=s;
+    reels.appendChild(d);
+  });
+}
+
+function isLineWin(line){
+  const vals=line.map(i=>grid[i]);
+  const nonWild=vals.filter(v=>v!=="⭐");
+  if(nonWild.length===0) return true;
+  if(nonWild.includes("🎁")) return false;
+  return nonWild.every(v=>v===nonWild[0]);
+}
+
+function evaluate(){
+  let gained=0;
+  let wins=[];
+  for(const line of paylines){
+    if(isLineWin(line)){
+      wins.push(...line);
+      const vals=line.map(i=>grid[i]);
+      const base = vals.includes("💎") ? 80 : vals.includes("🔔") ? 55 : 35;
+      gained += base;
+    }
+  }
+
+  const bonusCount = grid.filter(x=>x==="🎁").length;
+  if(bonusCount>=3){
+    gained += bonusCount*60;
+    grid.forEach((v,i)=>{ if(v==="🎁") wins.push(i); });
+  }
+
+  wins=[...new Set(wins)];
+  if(gained>0){
+    score += gained;
+    msg.textContent = `✨ +${gained} ქულა`;
+  }else{
+    msg.textContent = "კიდევ სცადე!";
+  }
+  if(score>best){
+    best=score;
+    localStorage.setItem("arcadeBest",String(best));
+  }
+  scoreEl.textContent=score;
+  bestEl.textContent=best;
+  render(wins);
+}
+
+async function spin(){
+  if(spinning) return;
+  spinning=true;
+  spinBtn.disabled=true;
+  msg.textContent="ტრიალებს…";
+
+  for(let t=0;t<12;t++){
+    grid=grid.map(()=>weightedSymbol());
+    render();
+    [...document.querySelectorAll(".cell")].forEach(c=>c.classList.add("spin"));
+    await new Promise(r=>setTimeout(r,70+t*8));
+  }
+  grid=grid.map(()=>weightedSymbol());
+  render();
+  evaluate();
+
+  spinning=false;
+  spinBtn.disabled=false;
+}
+
+spinBtn.addEventListener("click",spin);
+render();
+</script>
+</body>
+</html>
